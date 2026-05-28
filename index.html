@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The 99">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a10">
+<title>The 99</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@300;400;500&family=Pinyon+Script&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh;min-height:100dvh;overscroll-behavior:none;overflow-x:hidden}
+body{font-family:'IBM Plex Mono',monospace;font-weight:400;position:relative;transition:background 0.5s,color 0.5s}
+
+/* DARK: olive/moss greens, cream text */
+body.dark{background:#12130c;color:#e8e4d0}
+/* LIGHT: warm cream, dark olive text */
+body.light{background:#f2edd8;color:#1c1e12}
+
+/* VIGNETTE */
+.vignette{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:0}
+.dark .vignette{
+  background:
+    radial-gradient(ellipse at 50% 50%,transparent 25%,rgba(8,8,3,0.35) 55%,rgba(4,4,1,0.80) 100%),
+    radial-gradient(ellipse at 50% 0%,rgba(140,150,60,0.08) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 100%,rgba(60,40,10,0.20) 0%,transparent 45%),
+    radial-gradient(ellipse at 0% 0%,rgba(20,20,5,0.50) 0%,transparent 35%),
+    radial-gradient(ellipse at 100% 0%,rgba(20,20,5,0.45) 0%,transparent 35%),
+    radial-gradient(ellipse at 0% 100%,rgba(15,15,4,0.55) 0%,transparent 35%),
+    radial-gradient(ellipse at 100% 100%,rgba(15,15,4,0.55) 0%,transparent 35%);
+}
+.light .vignette{
+  background:
+    radial-gradient(ellipse at 50% 50%,transparent 40%,rgba(200,190,140,0.20) 70%,rgba(160,150,100,0.40) 100%),
+    radial-gradient(ellipse at 0% 0%,rgba(140,130,80,0.15) 0%,transparent 30%),
+    radial-gradient(ellipse at 100% 100%,rgba(140,130,80,0.15) 0%,transparent 30%);
+}
+
+/* GRAIN - canvas */
+.grain{position:fixed;top:-50%;left:-50%;width:200%;height:200%;pointer-events:none;z-index:1}
+.dark .grain{opacity:0.14}
+.light .grain{opacity:0.05}
+
+/* FROST LINES */
+.frost{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:1}
+.dark .frost{background:repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(160,170,80,0.006) 3px,rgba(160,170,80,0.006) 4px)}
+.light .frost{background:repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(80,80,30,0.006) 3px,rgba(80,80,30,0.006) 4px)}
+
+.wrap{max-width:480px;margin:0 auto;padding:28px 24px 80px;position:relative;z-index:2}
+
+/* FONTS */
+.serif{font-family:'Playfair Display',serif}
+.cursive{font-family:'Pinyon Script',cursive}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+/* SLIDE */
+.slide-page{transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94),opacity 0.4s ease}
+.slide-left-enter{transform:translateX(60px);opacity:0}
+.slide-right-enter{transform:translateX(-60px);opacity:0}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;margin-bottom:28px}
+.dark .header{border-bottom:1px solid rgba(200,200,140,0.12)}
+.light .header{border-bottom:1px solid rgba(60,60,20,0.12)}
+.title{font-family:'Playfair Display',serif;font-size:32px;font-weight:600;letter-spacing:0.02em}
+.dark .title{color:#f0ecd6}
+.light .title{color:#1c1e12}
+.header-right{display:flex;align-items:center;gap:12px}
+.date{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:400;letter-spacing:0.06em}
+.dark .date{color:rgba(220,216,180,0.50)}
+.light .date{color:rgba(60,60,20,0.50)}
+.mode-toggle{background:none;border:none;font-size:20px;cursor:pointer;padding:6px;opacity:0.65;transition:opacity 0.3s}
+.mode-toggle:hover{opacity:1}
+.menu-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:4px;transition:opacity 0.3s;opacity:0.55}
+.dark .menu-btn{color:#e8e4d0}
+.light .menu-btn{color:#1c1e12}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:28px}
+.stat{text-align:center;padding:18px 8px;border-radius:6px}
+.dark .stat{background:rgba(200,200,140,0.04);border:1px solid rgba(200,200,140,0.08)}
+.light .stat{background:rgba(255,255,255,0.50);border:1px solid rgba(60,60,20,0.08)}
+.stat-num{font-family:'Playfair Display',serif;font-size:38px;font-weight:600;line-height:1}
+.dark .stat-num{color:#f0ecd6}
+.light .stat-num{color:#1c1e12}
+.stat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;margin-top:8px}
+.dark .stat-label{color:rgba(200,200,140,0.40)}
+.light .stat-label{color:rgba(60,60,20,0.40)}
+
+/* MILESTONE - cursive accent */
+.milestone{text-align:center;padding:14px 24px;margin-bottom:20px;font-family:'Pinyon Script',cursive;font-size:24px;border-radius:6px;display:none}
+.milestone.show{display:block}
+.dark .milestone{color:#c8cc8a;background:rgba(160,170,60,0.06);border:1px solid rgba(160,170,60,0.10)}
+.light .milestone{color:#5a5e20;background:rgba(120,130,40,0.06);border:1px solid rgba(120,130,40,0.10)}
+
+/* PROGRESS */
+.progress{height:2px;margin-bottom:24px;border-radius:2px}
+.dark .progress{background:rgba(200,200,140,0.10)}
+.light .progress{background:rgba(60,60,20,0.10)}
+.progress-fill{height:100%;border-radius:2px;transition:width 0.5s ease}
+.dark .progress-fill{background:linear-gradient(90deg,#7a8030,#b0b860)}
+.light .progress-fill{background:linear-gradient(90deg,#6a7020,#9aa040)}
+
+/* DAY LABEL */
+.day-label{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:18px}
+.dark .day-label{color:rgba(220,216,180,0.55)}
+.light .day-label{color:rgba(60,60,20,0.50)}
+
+/* DAYTYPE */
+.daytype-picker{display:flex;gap:10px;margin-bottom:20px}
+.daytype-btn{flex:1;padding:12px 10px;font-family:'Playfair Display',serif;font-size:14px;font-weight:500;text-align:center;border-radius:6px;cursor:pointer;transition:all 0.25s}
+.dark .daytype-btn{background:rgba(200,200,140,0.04);border:1px solid rgba(200,200,140,0.08);color:rgba(220,216,180,0.45)}
+.light .daytype-btn{background:rgba(255,255,255,0.40);border:1px solid rgba(60,60,20,0.08);color:rgba(60,60,20,0.45)}
+.dark .daytype-btn.active{background:rgba(140,150,50,0.12);color:#d0d490;border-color:rgba(160,170,60,0.25)}
+.light .daytype-btn.active{background:rgba(100,110,30,0.10);color:#3a3e10;border-color:rgba(100,110,30,0.25)}
+
+.sabbath-msg{text-align:center;padding:48px 20px;font-family:'Pinyon Script',cursive;font-size:32px;line-height:1.8}
+.dark .sabbath-msg{color:rgba(220,216,180,0.35)}
+.light .sabbath-msg{color:rgba(60,60,20,0.30)}
+
+/* GOALS */
+.goal-wrap{margin-bottom:6px}
+.goal{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:6px 6px 0 0;cursor:pointer;user-select:none;transition:all 0.25s}
+.goal-wrap:not(.expanded) .goal{border-radius:6px}
+.goal:active{transform:scale(0.985)}
+.dark .goal{border:1px solid rgba(200,200,140,0.06);background:rgba(200,200,140,0.03)}
+.light .goal{border:1px solid rgba(60,60,20,0.06);background:rgba(255,255,255,0.40)}
+.dark .goal.done{background:rgba(140,150,50,0.10);border-color:rgba(160,170,60,0.18)}
+.light .goal.done{background:rgba(100,110,30,0.10);border-color:rgba(100,110,30,0.16)}
+.goal.pop{animation:pop 0.35s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.015)}100%{transform:scale(1)}}
+.goal-icon{font-size:14px;width:20px;text-align:center;opacity:0.3;transition:all 0.25s}
+.dark .goal.done .goal-icon{opacity:1;color:#c8cc8a}
+.light .goal.done .goal-icon{opacity:1;color:#5a5e20}
+.goal-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:500;flex:1;transition:color 0.25s}
+.dark .goal.done .goal-name{color:#f0ecd6}
+.light .goal.done .goal-name{color:#1c1e12}
+.goal-time{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:400;letter-spacing:0.06em}
+.dark .goal-time{color:rgba(200,200,140,0.30)}
+.light .goal-time{color:rgba(60,60,20,0.30)}
+.dark .goal.done .goal-time{color:rgba(200,200,140,0.50)}
+.light .goal.done .goal-time{color:rgba(60,60,20,0.50)}
+.goal-check{font-size:14px;opacity:0;transition:opacity 0.25s;margin-right:4px}
+.dark .goal-check{color:#c8cc8a}
+.light .goal-check{color:#5a5e20}
+.goal.done .goal-check{opacity:1}
+.goal-expand{font-size:9px;opacity:0.3;cursor:pointer;padding:6px;transition:transform 0.25s,opacity 0.2s}
+.goal-wrap.expanded .goal-expand{transform:rotate(180deg);opacity:0.6}
+
+.goal-note{overflow:hidden;max-height:0;transition:max-height 0.3s ease,padding 0.3s ease;padding:0 18px;border-radius:0 0 6px 6px}
+.goal-wrap.expanded .goal-note{max-height:80px;padding:10px 18px 12px}
+.dark .goal-note{background:rgba(200,200,140,0.02);border:1px solid rgba(200,200,140,0.05);border-top:none}
+.light .goal-note{background:rgba(255,255,255,0.25);border:1px solid rgba(60,60,20,0.05);border-top:none}
+.goal-note input{width:100%;background:transparent;border:none;border-bottom:1px solid;padding:6px 0;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:12px;outline:none}
+.dark .goal-note input{border-color:rgba(200,200,140,0.10);color:#e8e4d0}
+.light .goal-note input{border-color:rgba(60,60,20,0.12);color:#1c1e12}
+.goal-note input::placeholder{opacity:0.30}
+
+/* FIELDS */
+.field{margin-top:18px}
+.field label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;display:block;margin-bottom:8px}
+.dark .field label{color:rgba(220,216,180,0.45)}
+.light .field label{color:rgba(60,60,20,0.40)}
+.field input,.field textarea{width:100%;padding:14px 16px;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:13px;border-radius:6px;outline:none;transition:border-color 0.25s;resize:vertical}
+.dark .field input,.dark .field textarea{background:rgba(200,200,140,0.03);border:1px solid rgba(200,200,140,0.08);color:#e8e4d0}
+.light .field input,.light .field textarea{background:rgba(255,255,255,0.45);border:1px solid rgba(60,60,20,0.08);color:#1c1e12}
+.dark .field input:focus,.dark .field textarea:focus{border-color:rgba(160,170,60,0.25)}
+.light .field input:focus,.light .field textarea:focus{border-color:rgba(100,110,30,0.25)}
+.field input::placeholder,.field textarea::placeholder{opacity:0.28}
+.field textarea{min-height:64px;line-height:1.6}
+
+/* ACTIONS */
+.actions{display:flex;gap:10px;margin-top:26px;align-items:center}
+.save-btn{flex:1;padding:16px;font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;border-radius:6px;transition:all 0.25s}
+.dark .save-btn{background:rgba(140,150,50,0.10);border:1px solid rgba(160,170,60,0.16);color:#c8cc8a}
+.light .save-btn{background:rgba(100,110,30,0.08);border:1px solid rgba(100,110,30,0.14);color:#5a5e20}
+.save-btn.flash{background:rgba(80,130,50,0.15)!important;border-color:rgba(80,130,50,0.25)!important}
+.nav-btn{padding:16px 16px;font-family:'IBM Plex Mono',monospace;font-size:14px;cursor:pointer;border-radius:6px;transition:all 0.25s}
+.dark .nav-btn{background:rgba(200,200,140,0.03);border:1px solid rgba(200,200,140,0.08);color:rgba(220,216,180,0.45)}
+.light .nav-btn{background:rgba(255,255,255,0.35);border:1px solid rgba(60,60,20,0.08);color:rgba(60,60,20,0.40)}
+.nav-btn:disabled{opacity:0.15;cursor:not-allowed}
+
+.viewlabel{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;margin-top:14px;letter-spacing:0.06em}
+.dark .viewlabel{color:rgba(200,200,140,0.25)}
+.light .viewlabel{color:rgba(60,60,20,0.28)}
+
+/* SECTIONS */
+.section-toggle{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;text-align:center;cursor:pointer;padding:14px;margin-top:12px;border-radius:6px;transition:all 0.25s}
+.dark .section-toggle{color:rgba(200,200,140,0.30);background:rgba(200,200,140,0.025);border:1px solid rgba(200,200,140,0.05)}
+.light .section-toggle{color:rgba(60,60,20,0.30);background:rgba(255,255,255,0.30);border:1px solid rgba(60,60,20,0.06)}
+
+.heatmap,.review{display:none;margin-top:10px;padding:18px;border-radius:6px}
+.heatmap.show,.review.show{display:block}
+.dark .heatmap,.dark .review{background:rgba(200,200,140,0.02);border:1px solid rgba(200,200,140,0.05)}
+.light .heatmap,.light .review{background:rgba(255,255,255,0.30);border:1px solid rgba(60,60,20,0.06)}
+.heatmap-grid{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
+.hm-cell{aspect-ratio:1;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:500;transition:transform 0.15s}
+.hm-cell:active{transform:scale(0.88)}
+.dark .hm-cell{color:rgba(220,216,180,0.25)}
+.light .hm-cell{color:rgba(60,60,20,0.30)}
+.dark .hm-empty{background:rgba(200,200,140,0.05)}
+.light .hm-empty{background:rgba(200,180,100,0.10)}
+.dark .hm-partial{background:rgba(160,170,60,0.22)}
+.light .hm-partial{background:rgba(160,170,60,0.25)}
+.dark .hm-full{background:rgba(100,140,50,0.30)}
+.light .hm-full{background:rgba(80,120,30,0.30)}
+.dark .hm-sabbath{background:rgba(200,200,140,0.08)}
+.light .hm-sabbath{background:rgba(200,190,140,0.15)}
+.dark .hm-future{background:rgba(200,200,140,0.02)}
+.light .hm-future{background:rgba(200,190,140,0.05)}
+.hm-legend{display:flex;gap:14px;justify-content:center;margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:400;letter-spacing:0.06em}
+.dark .hm-legend{color:rgba(200,200,140,0.30)}
+.light .hm-legend{color:rgba(60,60,20,0.30)}
+.hm-legend span{display:flex;align-items:center;gap:5px}
+.hm-ldot{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* REVIEW - cursive header */
+.review h3{font-family:'Pinyon Script',cursive;font-size:28px;margin-bottom:16px}
+.dark .review h3{color:#e8e4d0}
+.light .review h3{color:#1c1e12}
+.review-day{margin-bottom:12px;padding-bottom:12px}
+.dark .review-day{border-bottom:1px solid rgba(200,200,140,0.06)}
+.light .review-day{border-bottom:1px solid rgba(60,60,20,0.06)}
+.review-day:last-of-type{border:none}
+.review-day-name{font-family:'Playfair Display',serif;font-size:13px;font-weight:500}
+.dark .review-day-name{color:rgba(220,216,180,0.65)}
+.light .review-day-name{color:rgba(40,42,16,0.65)}
+.review-pillar-status{font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:2px}
+.dark .review-pillar-status{color:rgba(200,200,140,0.35)}
+.light .review-pillar-status{color:rgba(60,60,20,0.35)}
+.review-note{font-family:'IBM Plex Mono',monospace;font-size:11px;font-style:italic;margin-top:3px}
+.dark .review-note{color:rgba(200,200,140,0.25)}
+.light .review-note{color:rgba(60,60,20,0.25)}
+.review-summary{margin-top:16px;padding-top:16px;font-family:'Playfair Display',serif;font-size:14px;font-weight:600}
+.dark .review-summary{border-top:1px solid rgba(200,200,140,0.08);color:#c8cc8a}
+.light .review-summary{border-top:1px solid rgba(60,60,20,0.10);color:#4a4e18}
+
+/* FOOTER - cursive accent */
+.footer{margin-top:34px;padding-top:18px;font-family:'Pinyon Script',cursive;font-size:18px;text-align:center;line-height:1.8}
+.dark .footer{border-top:1px solid rgba(200,200,140,0.06);color:rgba(200,200,140,0.30)}
+.light .footer{border-top:1px solid rgba(60,60,20,0.08);color:rgba(60,60,20,0.25)}
+
+/* SIDE PANEL */
+.panel-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:90;opacity:0;pointer-events:none;transition:opacity 0.35s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.dark .panel-overlay{background:rgba(8,8,4,0.65)}
+.light .panel-overlay{background:rgba(220,210,170,0.55)}
+.panel-overlay.open{opacity:1;pointer-events:auto}
+.side-panel{position:fixed;top:0;right:0;bottom:0;width:320px;max-width:84vw;z-index:100;transform:translateX(100%);transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);overflow-y:auto;padding:30px 22px 48px}
+.dark .side-panel{background:#14150e;border-left:1px solid rgba(200,200,140,0.06)}
+.light .side-panel{background:#eee8d2;border-left:1px solid rgba(60,60,20,0.08)}
+.side-panel.open{transform:translateX(0)}
+.panel-close{position:absolute;top:20px;right:20px;background:none;border:none;font-size:20px;cursor:pointer;z-index:1;opacity:0.45}
+.panel-title{font-family:'Pinyon Script',cursive;font-size:34px;position:relative}
+.dark .panel-title{color:#f0ecd6}
+.light .panel-title{color:#1c1e12}
+.panel-subtitle{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:400;letter-spacing:0.12em;text-transform:uppercase;margin-top:6px;margin-bottom:28px}
+.dark .panel-subtitle{color:rgba(200,200,140,0.35)}
+.light .panel-subtitle{color:rgba(60,60,20,0.35)}
+.panel-section{margin-bottom:24px}
+.panel-section-title{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px}
+.dark .panel-section-title{color:rgba(200,200,140,0.30);border-bottom:1px solid rgba(200,200,140,0.06)}
+.light .panel-section-title{color:rgba(60,60,20,0.30);border-bottom:1px solid rgba(60,60,20,0.08)}
+.panel-goal{padding:13px 16px;border-radius:6px;margin-bottom:8px}
+.dark .panel-goal{background:rgba(200,200,140,0.03);border:1px solid rgba(200,200,140,0.06)}
+.light .panel-goal{background:rgba(255,255,255,0.40);border:1px solid rgba(60,60,20,0.06)}
+.panel-goal-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;margin-bottom:4px}
+.dark .panel-goal-name{color:#e8e4d0}
+.light .panel-goal-name{color:#1c1e12}
+.panel-goal-meta{font-family:'IBM Plex Mono',monospace;font-size:10px}
+.dark .panel-goal-meta{color:rgba(200,200,140,0.30)}
+.light .panel-goal-meta{color:rgba(60,60,20,0.30)}
+.locked-badge{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:0.12em;text-transform:uppercase;float:right;opacity:0.35}
+
+.add-goal-btn{width:100%;padding:14px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:11px;letter-spacing:0.08em;cursor:pointer;transition:all 0.25s;text-align:center}
+.dark .add-goal-btn{background:rgba(140,150,50,0.05);border:1px dashed rgba(160,170,60,0.14);color:rgba(200,200,140,0.40)}
+.light .add-goal-btn{background:rgba(100,110,30,0.04);border:1px dashed rgba(100,110,30,0.14);color:rgba(60,60,20,0.40)}
+.add-form{margin-top:14px;padding:18px;border-radius:6px}
+.dark .add-form{background:rgba(200,200,140,0.02);border:1px solid rgba(200,200,140,0.06)}
+.light .add-form{background:rgba(255,255,255,0.30);border:1px solid rgba(60,60,20,0.08)}
+.add-form label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:6px;margin-top:14px}
+.add-form label:first-child{margin-top:0}
+.dark .add-form label{color:rgba(200,200,140,0.35)}
+.light .add-form label{color:rgba(60,60,20,0.35)}
+.add-form input,.add-form select{width:100%;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:12px;border-radius:4px;outline:none;-webkit-appearance:none;appearance:none}
+.dark .add-form input,.dark .add-form select{background:rgba(200,200,140,0.04);border:1px solid rgba(200,200,140,0.08);color:#e8e4d0}
+.light .add-form input,.light .add-form select{background:rgba(255,255,255,0.45);border:1px solid rgba(60,60,20,0.08);color:#1c1e12}
+.add-form select option{background:#14150e;color:#e8e4d0}
+.day-picker{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.day-chip{padding:8px 11px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;border-radius:4px;cursor:pointer;transition:all 0.2s}
+.dark .day-chip{border:1px solid rgba(200,200,140,0.08);color:rgba(200,200,140,0.35);background:rgba(200,200,140,0.02)}
+.light .day-chip{border:1px solid rgba(60,60,20,0.08);color:rgba(60,60,20,0.35);background:rgba(255,255,255,0.25)}
+.dark .day-chip.on{background:rgba(140,150,50,0.14);color:#c8cc8a;border-color:rgba(160,170,60,0.22)}
+.light .day-chip.on{background:rgba(100,110,30,0.12);color:#3a3e10;border-color:rgba(100,110,30,0.22)}
+.confirm-btns{display:flex;gap:10px;margin-top:18px}
+.confirm-btns button{flex:1;padding:12px;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:10px;letter-spacing:0.08em;border-radius:4px;cursor:pointer}
+.dark .btn-confirm{background:rgba(140,150,50,0.12);border:1px solid rgba(160,170,60,0.18);color:#c8cc8a}
+.light .btn-confirm{background:rgba(100,110,30,0.10);border:1px solid rgba(100,110,30,0.16);color:#4a4e18}
+.dark .btn-cancel{background:rgba(200,200,140,0.03);border:1px solid rgba(200,200,140,0.06);color:rgba(200,200,140,0.35)}
+.light .btn-cancel{background:rgba(255,255,255,0.30);border:1px solid rgba(60,60,20,0.08);color:rgba(60,60,20,0.35)}
+
+/* LOCK MODAL */
+.lock-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.dark .lock-overlay{background:rgba(6,6,3,0.82)}
+.light .lock-overlay{background:rgba(220,210,170,0.82)}
+.lock-overlay.show{display:flex}
+.lock-modal{border-radius:8px;padding:34px 28px;max-width:360px;width:100%;text-align:center}
+.dark .lock-modal{background:#16170f;border:1px solid rgba(200,200,140,0.10)}
+.light .lock-modal{background:#ece6d0;border:1px solid rgba(60,60,20,0.12)}
+.lock-modal h2{font-family:'Pinyon Script',cursive;font-size:30px;margin-bottom:12px}
+.dark .lock-modal h2{color:#f0ecd6}
+.light .lock-modal h2{color:#1c1e12}
+.lock-modal p{font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.7;margin-bottom:16px}
+.dark .lock-modal p{color:rgba(220,216,180,0.50)}
+.light .lock-modal p{color:rgba(60,60,20,0.50)}
+.lock-modal .warn{font-family:'Playfair Display',serif;font-weight:600;font-size:14px;margin-bottom:18px}
+.dark .lock-modal .warn{color:#c8cc8a}
+.light .lock-modal .warn{color:#4a4e18}
+.lock-step{font-family:'IBM Plex Mono',monospace;font-size:9px;margin-bottom:16px;letter-spacing:0.12em;opacity:0.30}
+.lock-btns{display:flex;gap:12px}
+.lock-btns button{flex:1;padding:14px;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:10px;letter-spacing:0.10em;border-radius:6px;cursor:pointer}
+
+/* SETUP */
+.setup{max-width:480px;margin:0 auto;padding:52px 26px 60px;position:relative;z-index:2}
+.setup-title{font-family:'Pinyon Script',cursive;font-size:56px;text-align:center}
+.dark .setup-title{color:#f0ecd6}
+.light .setup-title{color:#1c1e12}
+.setup-sub{font-family:'Cormorant Garamond','Playfair Display',serif;font-size:14px;font-style:italic;font-weight:300;text-align:center;margin-top:10px;margin-bottom:40px}
+.dark .setup-sub{color:rgba(220,216,180,0.45)}
+.light .setup-sub{color:rgba(60,60,20,0.40)}
+.setup label{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;display:block;margin-bottom:8px;margin-top:24px}
+.setup label:first-of-type{margin-top:0}
+.dark .setup label{color:rgba(200,200,140,0.40)}
+.light .setup label{color:rgba(60,60,20,0.40)}
+.setup input,.setup select{width:100%;padding:14px 16px;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:13px;border-radius:6px;outline:none;-webkit-appearance:none;appearance:none}
+.dark .setup input,.dark .setup select{background:rgba(200,200,140,0.04);border:1px solid rgba(200,200,140,0.08);color:#e8e4d0}
+.light .setup input,.light .setup select{background:rgba(255,255,255,0.45);border:1px solid rgba(60,60,20,0.08);color:#1c1e12}
+.setup select option{background:#14150e;color:#e8e4d0}
+.setup-goal-item{padding:16px;border-radius:6px;margin-bottom:10px}
+.dark .setup-goal-item{background:rgba(200,200,140,0.025);border:1px solid rgba(200,200,140,0.05)}
+.light .setup-goal-item{background:rgba(255,255,255,0.35);border:1px solid rgba(60,60,20,0.06)}
+.setup-goal-header{display:flex;justify-content:space-between;align-items:center}
+.setup-goal-num{font-family:'Playfair Display',serif;font-size:12px;font-weight:600}
+.dark .setup-goal-num{color:rgba(200,200,140,0.50)}
+.light .setup-goal-num{color:rgba(60,60,20,0.50)}
+.setup-remove{background:none;border:none;font-size:16px;cursor:pointer;opacity:0.3}
+.setup-add{width:100%;padding:14px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:11px;cursor:pointer;margin-top:12px;text-align:center;letter-spacing:0.08em}
+.dark .setup-add{background:rgba(140,150,50,0.04);border:1px dashed rgba(160,170,60,0.12);color:rgba(200,200,140,0.35)}
+.light .setup-add{background:rgba(100,110,30,0.03);border:1px dashed rgba(100,110,30,0.12);color:rgba(60,60,20,0.35)}
+.setup-lock{width:100%;padding:18px;margin-top:32px;font-family:'Pinyon Script',cursive;font-size:26px;cursor:pointer;border-radius:6px;transition:all 0.3s}
+.dark .setup-lock{background:rgba(140,150,50,0.10);border:1px solid rgba(160,170,60,0.18);color:#c8cc8a}
+.light .setup-lock{background:rgba(100,110,30,0.08);border:1px solid rgba(100,110,30,0.16);color:#4a4e18}
+</style>
+</head>
+<body class="dark">
+<div class="vignette"></div>
+<div class="frost"></div>
+<canvas class="grain" id="grainCanvas"></canvas>
+<div id="app"></div>
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+<div class="side-panel" id="sidePanel"><button class="panel-close" onclick="closePanel()">✕</button><div id="panelContent"></div></div>
+<div class="lock-overlay" id="lockOverlay"><div class="lock-modal" id="lockModal"></div></div>
+<script>
+(function(){
+  const c=document.getElementById("grainCanvas"),ctx=c.getContext("2d");
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+  resize();window.addEventListener("resize",resize);
+  let frame=0;
+  function draw(){
+    frame++;if(frame%2!==0){requestAnimationFrame(draw);return}
+    const w=c.width,h=c.height,img=ctx.createImageData(w,h),d=img.data;
+    for(let i=0;i<d.length;i+=4){const v=Math.random()*255;d[i]=v;d[i+1]=v;d[i+2]=v;d[i+3]=22}
+    ctx.putImageData(img,0,0);requestAnimationFrame(draw)}
+  draw()
+})();
+</script>
+<script>
+(function(){
+const STORE="the99_v2",OLD_STORE="the99_data",MODE_KEY="the99_mode";
+const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],DS=["S","M","T","W","T","F","S"],MO=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const QT=["Ignition was never your problem","A season with a hard edge on both ends","The streak cannot lie","Every action is a vote for who you become","Systems over willpower","Strong ignition, weak follow-through — not anymore","What you do today compounds","Be honest with the page","Define who you want to become","The shiny new thing ate the morning"];
+const MS={1:"Day One",10:"Ten days deep",25:"A quarter done",50:"Halfway there",75:"Three quarters",90:"Nine remain",99:"You did it"};
+const IC=["✦","◆","▣","◉","△","◇","▪","●","✧","◎","⬡","▲","★","⬢","◈"];
+function tOpts(){let o=[{v:1,l:"1 min"}];for(let i=5;i<=300;i+=5)o.push({v:i,l:i>=60?Math.floor(i/60)+"hr"+(i%60?" "+i%60+"m":""):i+" min"});o.push({v:"task",l:"Task (mark done)"});return o}
+function dk(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function pd(s){const p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+function fmt(d){return DN[d.getDay()]+", "+MO[d.getMonth()]+" "+d.getDate()}
+function isW(d){return d.getDay()===0||d.getDay()===6}
+
+let darkMode=localStorage.getItem(MODE_KEY)!=="light";
+function applyMode(){document.body.className=darkMode?"dark":"light";localStorage.setItem(MODE_KEY,darkMode?"dark":"light")}
+applyMode();
+
+let state=null,viewDate=new Date(),exp={},showHM=false,showRV=false,slideDir=null,touchX=0,addingG=false,lockSt=0,pendLock=null;
+
+function load(){let r=localStorage.getItem(STORE);if(r){state=JSON.parse(r);return true}let o=localStorage.getItem(OLD_STORE);if(o){let oe=JSON.parse(o);state={startDate:"2026-05-18",endDate:"2026-08-25",totalDays:99,goals:[{id:"prayer",name:"Prayer / Bible",icon:"✦",time:"task",schedule:{type:"daily"},locked:true,addedAt:"2026-05-18"},{id:"exercise",name:"Exercise",icon:"◆",time:30,schedule:{type:"weekday_30_weekend_15"},locked:true,addedAt:"2026-05-18"},{id:"screenplay",name:"Screenplay",icon:"▣",time:30,schedule:{type:"weekday_30_weekend_15"},locked:true,addedAt:"2026-05-18"},{id:"business",name:"BMGB",icon:"◉",time:"task",schedule:{type:"daily"},locked:true,addedAt:"2026-05-18"}],entries:{},locked:true};Object.keys(oe).forEach(k=>{let e=oe[k];state.entries[k]={goals:{prayer:!!e.pillars?.prayer,exercise:!!e.pillars?.exercise,screenplay:!!e.pillars?.screenplay,business:!!e.pillars?.business},goalNotes:{prayer:e.pillarNotes?.prayer||"",exercise:e.pillarNotes?.exercise||"",screenplay:e.pillarNotes?.screenplay||"",business:e.pillarNotes?.business||""},bizTask:e.bizTask||"",notes:e.notes||"",dayType:e.dayType||"active"}});sv();return true}return false}
+function sv(){localStorage.setItem(STORE,JSON.stringify(state))}
+function gE(k){if(!state.entries[k]){let g={},gn={};state.goals.forEach(x=>{g[x.id]=false;gn[x.id]=""});state.entries[k]={goals:g,goalNotes:gn,bizTask:"",notes:"",dayType:"active"}}let e=state.entries[k];state.goals.forEach(x=>{if(e.goals[x.id]===undefined)e.goals[x.id]=false;if(!e.goalNotes)e.goalNotes={};if(e.goalNotes[x.id]===undefined)e.goalNotes[x.id]=""});return e}
+function dN(d){let a=new Date(d.getFullYear(),d.getMonth(),d.getDate()),s=pd(state.startDate);return Math.floor((a-s)/864e5)+1}
+function rem(){let t=new Date(),a=new Date(t.getFullYear(),t.getMonth(),t.getDate()),e=pd(state.endDate);return Math.max(0,Math.floor((e-a)/864e5))}
+function gFD(date,entry){let dow=date.getDay(),dt=entry.dayType||"active";if(dt==="sabbath")return[];return state.goals.filter(g=>{let s=g.schedule;if(!s||s.type==="daily"||s.type==="weekday_30_weekend_15")return true;if(s.type==="custom")return s.days&&s.days.includes(dow);return true})}
+function gTL(g,date){if(g.time==="task")return"task";if(g.schedule?.type==="weekday_30_weekend_15"&&isW(date)){let dt=gE(dk(date)).dayType;if(dt==="light")return Math.ceil(g.time/2)+" min"}return g.time+" min"}
+function stats(){let streak=0,logged=0,c=new Date(),sf=pd(state.startDate);for(let i=0;i<state.totalDays;i++){if(c<sf)break;let k=dk(c),e=state.entries[k];if(e){let dt=e.dayType||"active";if(dt==="sabbath"){if(i===streak)streak++;logged++}else{let dg=gFD(c,e),all=dg.length>0&&dg.every(g=>e.goals[g.id]);if(all&&i===streak)streak++;if(dg.some(g=>e.goals[g.id]))logged++}}c.setDate(c.getDate()-1)}return{streak,logged}}
+function svC(){if(!state)return;let k=dk(viewDate),e=gE(k),b=document.getElementById("biz"),n=document.getElementById("notes");if(b)e.bizTask=b.value;if(n)e.notes=n.value;state.goals.forEach(g=>{let i=document.getElementById("gn-"+g.id);if(i)e.goalNotes[g.id]=i.value});sv()}
+let svT=null;function aS(){clearTimeout(svT);svT=setTimeout(svC,500)}
+function qd(){let d=new Date(),i=(d.getFullYear()*1000+dN(d))%QT.length;return QT[i]}
+
+function rSetup(){let a=document.getElementById("app"),h=`<div class="setup"><div class="setup-title">The 99</div><div class="setup-sub">Set your season. Lock your goals. Begin.</div><label>End date</label><input type="date" id="se" min="${dk(new Date(Date.now()+864e6*10))}" max="${dk(new Date(Date.now()+864e6*375))}" value="${dk(new Date(Date.now()+864e6*99))}"><div style="font-family:'IBM Plex Mono';font-size:10px;margin-top:6px;opacity:0.35" id="sdl">99 days</div><label style="margin-top:26px">Goals</label><div id="sg"></div><button class="setup-add" id="sab" onclick="sAG()">+ Add goal</button><button class="setup-lock" onclick="sL()">Lock & Begin</button></div>`;a.innerHTML=h;document.getElementById("se").addEventListener("change",function(){let e=new Date(this.value+"T00:00:00"),t=new Date();t.setHours(0,0,0,0);document.getElementById("sdl").textContent=Math.floor((e-t)/864e5)+" days"});if(!window._sg)window._sg=[];rSG()}
+function rSG(){let c=document.getElementById("sg");if(!c)return;let g=window._sg,h="";g.forEach((x,i)=>{h+=`<div class="setup-goal-item"><div class="setup-goal-header"><span class="setup-goal-num">Goal ${i+1}</span><button class="setup-remove" onclick="sRG(${i})">✕</button></div><label>Name</label><input type="text" value="${(x.name||"").replace(/"/g,"&quot;")}" onchange="sUG(${i},'name',this.value)"><label>Time</label><select onchange="sUG(${i},'time',this.value)">`;tOpts().forEach(o=>{h+=`<option value="${o.v}"${x.time==o.v?" selected":""}>${o.l}</option>`});h+=`</select><label>Schedule</label><select onchange="sUG(${i},'st',this.value)"><option value="daily"${x.st==="daily"?" selected":""}>Every day</option><option value="custom"${x.st==="custom"?" selected":""}>Pick days</option></select>`;if(x.st==="custom"){h+=`<div class="day-picker" style="margin-top:8px">`;DS.forEach((d,di)=>{h+=`<div class="day-chip${x.days&&x.days.includes(di)?" on":""}" onclick="sTD(${i},${di})">${d}</div>`});h+=`</div>`}h+=`</div>`});c.innerHTML=h;let ab=document.getElementById("sab");if(ab)ab.style.display=g.length>=15?"none":"block"}
+window.sAG=function(){if(window._sg.length>=15)return;window._sg.push({name:"",time:"task",st:"daily",days:[0,1,2,3,4,5,6]});rSG()};window.sRG=function(i){window._sg.splice(i,1);rSG()};window.sUG=function(i,f,v){window._sg[i][f]=v;if(f==="st"&&v==="custom"&&!window._sg[i].days)window._sg[i].days=[0,1,2,3,4,5,6];rSG()};window.sTD=function(i,d){let g=window._sg[i];if(!g.days)g.days=[0,1,2,3,4,5,6];let x=g.days.indexOf(d);if(x===-1)g.days.push(d);else g.days.splice(x,1);rSG()};
+window.sL=function(){let g=window._sg;if(!g.length)return alert("Add at least one goal.");if(g.some(x=>!x.name.trim()))return alert("Every goal needs a name.");let ev=document.getElementById("se").value;if(!ev)return alert("Pick an end date.");pendLock={goals:g,endDate:ev};lockSt=1;sLM()};
+function sLM(){let ol=document.getElementById("lockOverlay"),m=document.getElementById("lockModal");ol.classList.add("show");let g=pendLock.goals,end=new Date(pendLock.endDate+"T00:00:00"),t=new Date();t.setHours(0,0,0,0);let days=Math.floor((end-t)/864e5);if(lockSt===1)m.innerHTML=`<h2>Lock Your Goals?</h2><p>${g.length} goal${g.length>1?"s":""} for ${days} days.</p><p class="warn">Once locked, these cannot be changed.</p><div class="lock-step">Step 1 of 3</div><div class="lock-btns"><button class="btn-cancel" onclick="cL()">Cancel</button><button class="btn-confirm" onclick="lN()">Continue</button></div>`;else if(lockSt===2){let gl="";g.forEach(x=>{gl+=`<div style="font-size:12px;margin:6px 0;text-align:left;opacity:0.65">${x.name} — ${x.time==="task"?"task":x.time+" min"} — ${x.st==="daily"?"daily":x.days.map(d=>DS[d]).join("")}</div>`});m.innerHTML=`<h2>Confirm</h2>${gl}<p class="warn" style="margin-top:16px">Permanent. Sure?</p><div class="lock-step">Step 2 of 3</div><div class="lock-btns"><button class="btn-cancel" onclick="cL()">Cancel</button><button class="btn-confirm" onclick="lN()">Lock them</button></div>`}else if(lockSt===3)m.innerHTML=`<h2>Final Check</h2><p class="warn">Last chance. No edits. No removals. Go.</p><div class="lock-step">Step 3 of 3</div><div class="lock-btns"><button class="btn-cancel" onclick="cL()">Back</button><button class="btn-confirm" onclick="cfL()">Lock it in</button></div>`}
+window.lN=function(){lockSt++;sLM()};window.cL=function(){lockSt=0;pendLock=null;document.getElementById("lockOverlay").classList.remove("show")};
+window.cfL=function(){let t=new Date();t.setHours(0,0,0,0);let goals=pendLock.goals.map((g,i)=>({id:"g_"+Date.now()+"_"+i,name:g.name,icon:IC[i%IC.length],time:g.time==="task"?"task":parseInt(g.time),schedule:g.st==="daily"?{type:"daily"}:{type:"custom",days:g.days||[0,1,2,3,4,5,6]},locked:true,addedAt:dk(t)}));state={startDate:dk(t),endDate:pendLock.endDate,totalDays:Math.floor((new Date(pendLock.endDate+"T00:00:00")-t)/864e5),goals,entries:{},locked:true};sv();cL();render()};
+
+window.startAG=function(){addingG=true;rP()};window.cancelAG=function(){addingG=false;rP()};
+window.saveNG=function(){let n=document.getElementById("ag-n").value.trim();if(!n)return alert("Name it.");let ti=document.getElementById("ag-t").value,sc=document.getElementById("ag-s").value,days=[0,1,2,3,4,5,6];if(sc==="custom"){days=[];document.querySelectorAll(".ag-dc.on").forEach(el=>{days.push(parseInt(el.dataset.day))});if(!days.length)return alert("Pick a day.")}pendLock={ng:{name:n,time:ti==="task"?"task":parseInt(ti),sched:sc,days}};lockSt=1;sNLM()};
+function sNLM(){let ol=document.getElementById("lockOverlay"),m=document.getElementById("lockModal");ol.classList.add("show");let g=pendLock.ng;m.innerHTML=`<h2>Lock New Goal?</h2><p style="text-align:left">${g.name} — ${g.time==="task"?"task":g.time+" min"} — ${g.sched==="daily"?"daily":"custom"}</p><p class="warn">Cannot be removed once added.</p><div class="lock-btns"><button class="btn-cancel" onclick="cL()">Cancel</button><button class="btn-confirm" onclick="cfNG()">Lock & Add</button></div>`}
+window.cfNG=function(){let g=pendLock.ng;state.goals.push({id:"g_"+Date.now(),name:g.name,icon:IC[state.goals.length%IC.length],time:g.time,schedule:g.sched==="daily"?{type:"daily"}:{type:"custom",days:g.days},locked:true,addedAt:dk(new Date())});sv();addingG=false;cL();rP();render()};
+
+function rP(){let c=document.getElementById("panelContent"),end=pd(state.endDate);let h=`<div class="panel-title">Your Season</div><div class="panel-subtitle">${state.totalDays} days · ends ${fmt(end)}</div><div class="panel-section"><div class="panel-section-title">Goals (${state.goals.length})</div>`;state.goals.forEach(g=>{let tl=g.time==="task"?"Task":g.time+" min",sl=g.schedule?.type==="daily"||g.schedule?.type==="weekday_30_weekend_15"?"Daily":g.schedule?.days?.map(d=>DS[d]).join(" ")||"Daily";h+=`<div class="panel-goal"><div class="panel-goal-name">${g.icon} ${g.name}<span class="locked-badge">locked</span></div><div class="panel-goal-meta">${tl} · ${sl}</div></div>`});h+=`</div>`;if(state.goals.length<15){if(addingG){h+=`<div class="add-form"><label>Name</label><input type="text" id="ag-n" placeholder="e.g. Read 20 pages"><label>Time</label><select id="ag-t">`;tOpts().forEach(o=>{h+=`<option value="${o.v}">${o.l}</option>`});h+=`</select><label>Schedule</label><select id="ag-s" onchange="agSC(this.value)"><option value="daily">Every day</option><option value="custom">Pick days</option></select><div id="ag-d" style="display:none;margin-top:8px"><div class="day-picker">`;DS.forEach((d,i)=>{h+=`<div class="day-chip ag-dc" data-day="${i}" onclick="agTD(this)">${d}</div>`});h+=`</div></div><div class="confirm-btns"><button class="btn-cancel" onclick="cancelAG()">Cancel</button><button class="btn-confirm" onclick="saveNG()">Lock & Add</button></div></div>`}else{h+=`<button class="add-goal-btn" onclick="startAG()">+ Add new goal</button>`}}c.innerHTML=h}
+window.agSC=function(v){document.getElementById("ag-d").style.display=v==="custom"?"block":"none"};window.agTD=function(el){el.classList.toggle("on")};
+window.openPanel=function(){rP();document.getElementById("panelOverlay").classList.add("open");document.getElementById("sidePanel").classList.add("open")};window.closePanel=function(){document.getElementById("panelOverlay").classList.remove("open");document.getElementById("sidePanel").classList.remove("open");addingG=false};
+
+function render(){if(!state){rSetup();return}let app=document.getElementById("app"),today=new Date(),tK=dk(today),cK=dk(viewDate),isT=cK===tK;let dn=dN(viewDate),rm=rem(),wk=isW(viewDate),entry=gE(cK),dt=entry.dayType||"active",isSab=dt==="sabbath",isLt=dt==="light";let dg=isSab?[]:gFD(viewDate,entry),{streak:st,logged:lg}=stats();let done=dg.filter(g=>entry.goals[g.id]).length,sf=pd(state.startDate),pv=new Date(viewDate);pv.setDate(pv.getDate()-1);let canB=pv>=sf,ms=MS[dn]||"";
+  let h=`<div class="wrap"><div class="slide-page" id="sp">`;
+  h+=`<div class="header"><div class="title">The 99</div><div class="header-right"><div class="date">${fmt(viewDate)}</div><button class="mode-toggle" onclick="tM()">${darkMode?"☀":"☽"}</button><button class="menu-btn" onclick="openPanel()">☰</button></div></div>`;
+  h+=`<div class="stats"><div class="stat"><div class="stat-num">${st}</div><div class="stat-label">Streak</div></div><div class="stat"><div class="stat-num">${lg}</div><div class="stat-label">Logged</div></div><div class="stat"><div class="stat-num">${rm}</div><div class="stat-label">Remaining</div></div></div>`;
+  h+=`<div class="milestone${ms?" show":""}">${ms}</div>`;
+  h+=`<div class="progress"><div class="progress-fill" style="width:${Math.min(100,((state.totalDays-rm)/state.totalDays)*100)}%"></div></div>`;
+  let dl=dn>=1&&dn<=state.totalDays?(isSab?`Day ${dn} — Sabbath`:isLt?`Day ${dn} — Light · ${done}/${dg.length}`:dg.length?`Day ${dn} — ${done}/${dg.length}`:`Day ${dn}`):dn<1?"Before":"Complete";
+  h+=`<div class="day-label">${dl}</div>`;
+  if(wk)h+=`<div class="daytype-picker"><button class="daytype-btn${isSab?" active":""}" onclick="setType('sabbath')">Sabbath</button><button class="daytype-btn${isLt?" active":""}" onclick="setType('light')">Light</button></div>`;
+  if(isSab){h+=`<div class="sabbath-msg">Rest.<br>The streak holds.</div>`}
+  else{dg.forEach(g=>{let d=entry.goals[g.id],ex=exp[g.id],nv=entry.goalNotes[g.id]||"",tl=gTL(g,viewDate);h+=`<div class="goal-wrap${ex?" expanded":""}"><div class="goal${d?" done":""}" onclick="tG('${g.id}')"><span class="goal-icon">${g.icon}</span><span class="goal-name">${g.name}</span><span class="goal-time">${tl}</span><span class="goal-check">✓</span><span class="goal-expand" onclick="event.stopPropagation();tE('${g.id}')">▼</span></div><div class="goal-note"><input type="text" id="gn-${g.id}" value="${nv.replace(/"/g,"&quot;")}" placeholder="What'd you do?" oninput="aF()"></div></div>`});
+    h+=`<div class="field"><label>Business task</label><input type="text" id="biz" value="${(entry.bizTask||"").replace(/"/g,"&quot;")}" placeholder="Name the output" oninput="aF()"></div>`;
+    h+=`<div class="field"><label>Notes</label><textarea id="notes" placeholder="Wins, misses, blockers." oninput="aF()">${entry.notes||""}</textarea></div>`}
+  h+=`<div class="actions"><button class="nav-btn" onclick="sh(-1)"${canB?"":" disabled"}>←</button><button class="save-btn" id="sb" onclick="mS()">Saved ✓</button><button class="nav-btn" onclick="sh(1)"${isT?" disabled":""}>→</button></div>`;
+  h+=`<div class="viewlabel">${isT?"Today":"Viewing "+fmt(viewDate)}</div>`;
+  h+=`<div class="section-toggle" onclick="tHM()">${showHM?"Heat Map ▲":"Heat Map ▼"}</div><div class="heatmap${showHM?" show":""}">${bHM()}</div>`;
+  h+=`<div class="section-toggle" onclick="tRV()">${showRV?"Week Review ▲":"Week Review ▼"}</div><div class="review${showRV?" show":""}">${bRV()}</div>`;
+  h+=`<div class="footer">${qd()}</div></div></div>`;
+  app.innerHTML=h;
+  if(slideDir){let p=document.getElementById("sp");if(p){p.classList.add(slideDir==="left"?"slide-left-enter":"slide-right-enter");requestAnimationFrame(()=>{requestAnimationFrame(()=>{p.classList.remove("slide-left-enter","slide-right-enter")})})}slideDir=null}}
+
+function bHM(){let h=`<div class="heatmap-grid">`,today=new Date();for(let i=1;i<=state.totalDays;i++){let d=pd(state.startDate);d.setDate(d.getDate()+i-1);let k=dk(d),e=state.entries[k],iF=d>today,cls="hm-future";if(!iF){if(!e)cls="hm-empty";else if((e.dayType||"active")==="sabbath")cls="hm-sabbath";else{let dg=gFD(d,e),cnt=dg.filter(g=>e.goals[g.id]).length;cls=cnt===dg.length&&dg.length>0?"hm-full":cnt>0?"hm-partial":"hm-empty"}}h+=`<div class="hm-cell ${cls}" onclick="jT('${k}')">${i}</div>`}h+=`</div><div class="hm-legend"><span><span class="hm-ldot hm-full"></span>Done</span><span><span class="hm-ldot hm-partial"></span>Partial</span><span><span class="hm-ldot hm-sabbath"></span>Rest</span><span><span class="hm-ldot hm-empty"></span>Missed</span></div>`;return h}
+
+function bRV(){let today=new Date(),sun=new Date(today);sun.setDate(today.getDate()-today.getDay());let h=`<h3>This Week</h3>`,tG=0,dG=0;for(let i=0;i<7;i++){let d=new Date(sun);d.setDate(sun.getDate()+i);if(d>today)break;let k=dk(d),e=state.entries[k];h+=`<div class="review-day"><div class="review-day-name">${DN[d.getDay()]} ${d.getDate()}</div>`;if(!e)h+=`<div class="review-pillar-status">—</div>`;else if((e.dayType||"active")==="sabbath")h+=`<div class="review-pillar-status">Sabbath</div>`;else{let dgs=gFD(d,e);tG+=dgs.length;let cnt=dgs.filter(g=>e.goals[g.id]).length;dG+=cnt;h+=`<div class="review-pillar-status">${cnt}/${dgs.length}</div>`;if(e.bizTask)h+=`<div class="review-note">${e.bizTask}</div>`;dgs.forEach(g=>{if(e.goalNotes&&e.goalNotes[g.id])h+=`<div class="review-note">${g.name}: ${e.goalNotes[g.id]}</div>`});if(e.notes)h+=`<div class="review-note">${e.notes}</div>`}h+=`</div>`}h+=`<div class="review-summary">${tG?Math.round(dG/tG*100):0}% · ${dG}/${tG}</div>`;return h}
+
+window.tG=function(id){svC();let k=dk(viewDate),e=gE(k);e.goals[id]=!e.goals[id];sv();render()};window.tE=function(id){exp[id]=!exp[id];render()};window.aF=function(){aS()};window.tM=function(){darkMode=!darkMode;applyMode();render()};
+window.setType=function(t){svC();let k=dk(viewDate),e=gE(k);e.dayType=t;let vd=new Date(viewDate),od=new Date(vd);if(vd.getDay()===0)od.setDate(vd.getDate()-1);else od.setDate(vd.getDate()+1);let ok=dk(od),oe=gE(ok);oe.dayType=t==="sabbath"?"light":"sabbath";sv();render()};
+window.mS=function(){svC();let b=document.getElementById("sb");if(b){b.classList.add("flash");b.textContent="Saved ✓";setTimeout(()=>{b.classList.remove("flash");b.textContent="Saved ✓"},1200)}};
+window.sh=function(dir){svC();let d=new Date(viewDate);d.setDate(d.getDate()+dir);let sf=pd(state.startDate),today=new Date();if(d>=sf&&d<=today){slideDir=dir===1?"left":"right";viewDate=d;exp={};render()}};
+window.jT=function(k){svC();let d=pd(k),today=new Date(),sf=pd(state.startDate);if(d>=sf&&d<=today){viewDate=d;exp={};render()}};
+window.tHM=function(){showHM=!showHM;render()};window.tRV=function(){showRV=!showRV;render()};
+
+document.addEventListener("touchstart",function(e){touchX=e.changedTouches[0].screenX},{passive:true});
+document.addEventListener("touchend",function(e){let dx=e.changedTouches[0].screenX-touchX;if(Math.abs(dx)>80){if(dx>0)window.sh(-1);else window.sh(1)}},{passive:true});
+
+if(load())render();else rSetup();
+})();
+</script>
+</body>
+</html>
